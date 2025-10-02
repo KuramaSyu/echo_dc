@@ -1,8 +1,9 @@
 use clap::{Parser, Subcommand};
-use config::Config;
 use serenity::builder::ExecuteWebhook;
 use serenity::http::Http;
 use serenity::model::webhook::Webhook;
+mod utils;
+use utils::Config;
 
 #[derive(Parser, Debug)]
 #[command(name = "echo_dc")]
