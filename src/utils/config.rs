@@ -5,16 +5,21 @@ use std::{
 };
 
 use serde::{Deserialize, Serialize};
+use serenity::model::webhook;
 use toml;
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct Config {
-    webhooks: HashMap<String, String>,
+    pub webhooks: HashMap<String, String>,
 }
 
 impl Config {
     pub fn new(webhooks: HashMap<String, String>) -> Self {
         Config { webhooks }
+    }
+
+    pub fn get_webhook(&self, name: &str) -> Option<String> {
+        return self.webhooks.get(name).cloned();
     }
 
     fn default_path() -> String {
