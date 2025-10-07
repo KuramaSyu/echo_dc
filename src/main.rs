@@ -1,7 +1,7 @@
 use clap::{Parser, Subcommand};
 use serenity::builder::ExecuteWebhook;
 use serenity::http::Http;
-use serenity::model::webhook::Webhook;
+use serenity::model::webhook::{self, Webhook};
 mod utils;
 use utils::Config;
 
@@ -9,58 +9,53 @@ use utils::Config;
 #[command(name = "echo_dc")]
 #[command(about = "Echo - but for Discord instead of the console")]
 struct Cli {
-    #[command(subcommand)]
-    command: Commands,
+    /// The name of the webhook to use
+    #[arg(global = true, help = "Name of the webhook to send to")]
+    webhook_name: Option<String>,
+
+    /// The message to send (consumes everything after)
+    #[arg(global = true, help = "Message to send", trailing_var_arg = true)]
+    message: Option<Vec<String>>,
+    // #[command(subcommand)]
+    // command: Option<Commands>,
 }
 
 #[derive(Subcommand, Debug)]
-enum Commands {
-    /// Send a message to a Discord channel
-    Send {
-        /// The message to send
-        message: String,
-        /// The channel ID to send the message to
-        channel_id: String,
-    },
-}
+enum Commands {}
 
 #[tokio::main]
 async fn main() {
     let cli = Cli::parse();
-
-    match &cli.command {
-        Commands::Send {
-            message,
-            channel_id,
-        } => {}
+    let config = Config::from_etc().unwrap_or(Config::template());
+    let webhook = match config.get_webhook(&cli.webhook_name.clone().unwrap()) {
+        Some(v) => v,
+        None => {
+            eprintln!(
+                "Webhook '{}' not found in config. Available webhooks: {:?}",
+                cli.webhook_name.unwrap(),
+                config.webhooks.keys().collect::<Vec<&String>>()
+            );
+            std::process::exit(1);
+        }
+    };
+    let message = cli.message.unwrap_or_default().join(" ");
+    if message.is_empty() {
+        eprintln!("No message provided to send.");
+        std::process::exit(1);
     }
+    send_webhook(message, &webhook).await;
 }
 
-async fn run_send(message: &str, channel_id: &str) {
-    // Just a mock async operation
-    let config = Config::from_etc().expect("Failed to load config");
-    println!("🚀 Sending message to channel {}: {}", channel_id, message);
-    tokio::time::sleep(std::time::Duration::from_secs(1)).await;
-    println!("✅ Done.");
-}
-
-async fn run_main(config_path: &str) {
-    // Just a mock async operation
-    println!("🚀 Starting EchoDC with config at: {}", config_path);
-    tokio::time::sleep(std::time::Duration::from_secs(1)).await;
-    println!("✅ Done.");
-}
-
-async fn send_webhook() {
+async fn send_webhook(message: String, webhook_url: &str) {
     // You don't need a token when you are only dealing with webhooks.
     let http = Http::new("");
-    let webhook = Webhook::from_url(&http, "https://discord.com/api/webhooks/133742013374206969/hello-there-oPNtRN5UY5DVmBe7m1N0HE-replace-me-Dw9LRkgq3zI7LoW3Rb-k-q")
+    let webhook = Webhook::from_url(&http, webhook_url)
         .await
         .expect("Replace the webhook with your own");
 
     let builder = ExecuteWebhook::new()
-        .content("hello there")
-        .username("Webhook test");
+        .content(message)
+        .username("Vuekos Echo");
     webhook
         .execute(&http, false, builder)
         .await
