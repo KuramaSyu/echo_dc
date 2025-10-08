@@ -2,6 +2,7 @@ use std::{
     collections::HashMap,
     fs::File,
     io::{Read, Write},
+    path::Path,
 };
 
 use serde::{Deserialize, Serialize};
@@ -22,8 +23,22 @@ impl Config {
         return self.webhooks.get(name).cloned();
     }
 
+    pub fn ensure_file_exists(path: &str) -> () {
+        std::fs::create_dir_all(Path::new(path).parent().unwrap()).unwrap();
+        if !std::fs::exists(Path::new(path)).unwrap() {
+            let default_config = Config::template();
+            default_config.to_etc().unwrap();
+        }
+    }
+
     pub fn default_path() -> String {
-        return "/etc/echo_dc/config.toml".into();
+        dirs::config_dir()
+            .unwrap()
+            .join("echo_dc")
+            .join("config.toml")
+            .to_str()
+            .unwrap()
+            .to_string()
     }
     pub fn from_etc() -> Result<Self, Box<dyn std::error::Error>> {
         let config = std::fs::read_to_string(Config::default_path())?;
@@ -42,7 +57,7 @@ impl Config {
         let mut webhooks = HashMap::new();
         webhooks.insert(
             "default_webhook".to_string(),
-            "https://discord.com/api/webhooks/133742013374206969/only-this-part-here".to_string(),
+            "https://discord.com/api/webhooks/some_id/some_id".to_string(),
         );
         Config { webhooks: webhooks }
     }
