@@ -22,7 +22,7 @@ impl Config {
         return self.webhooks.get(name).cloned();
     }
 
-    fn default_path() -> String {
+    pub fn default_path() -> String {
         return "/etc/echo_dc/config.toml".into();
     }
     pub fn from_etc() -> Result<Self, Box<dyn std::error::Error>> {
