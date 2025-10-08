@@ -26,13 +26,21 @@ enum Commands {}
 #[tokio::main]
 async fn main() {
     let cli = Cli::parse();
-    let config = Config::from_etc().unwrap_or(Config::template());
+    let config = match Config::from_etc() {
+        Ok(c) => c,
+        Err(e) => {
+            let default_config = Config::template();
+            default_config.to_etc().unwrap();
+            default_config
+        }
+    };
     let webhook = match config.get_webhook(&cli.webhook_name.clone().unwrap()) {
         Some(v) => v,
         None => {
             eprintln!(
-                "Webhook '{}' not found in config. Available webhooks: {:?}",
+                "Webhook '{}' not found in {}. Available webhooks: {:?}",
                 cli.webhook_name.unwrap(),
+                Config::default_path(),
                 config.webhooks.keys().collect::<Vec<&String>>()
             );
             std::process::exit(1);
