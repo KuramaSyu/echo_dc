@@ -26,6 +26,7 @@ enum Commands {}
 #[tokio::main]
 async fn main() {
     let cli = Cli::parse();
+    Config::ensure_file_exists(&Config::default_path());
     let config = match Config::from_etc() {
         Ok(c) => c,
         Err(e) => {
