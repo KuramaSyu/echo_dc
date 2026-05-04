@@ -23,6 +23,7 @@ impl Config {
         return self.webhooks.get(name).cloned();
     }
 
+    /// Checks if the config file exists, and if not, creates it with the default template
     pub fn ensure_file_exists(path: &str) -> () {
         std::fs::create_dir_all(Path::new(path).parent().unwrap()).unwrap();
         if !std::fs::exists(Path::new(path)).unwrap() {
