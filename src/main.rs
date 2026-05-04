@@ -1,3 +1,6 @@
+use std::io;
+use std::io::Read;
+
 use clap::{Parser, Subcommand};
 use serenity::all::{CreateEmbed, Embed, Message};
 use serenity::builder::ExecuteWebhook;
@@ -76,7 +79,18 @@ async fn main() {
             std::process::exit(1);
         }
     };
-    let message = cli.content.unwrap_or_default().join(" ");
+
+    let message = match cli.content {
+        Some(c) => c.join(" "),
+        None => {
+            // Read from stdin if no --content provided
+            let mut buffer = String::new();
+            io::stdin()
+                .read_to_string(&mut buffer)
+                .expect("Failed to read stdin");
+            buffer.trim().to_string()
+        }
+    };
     if message.is_empty() {
         eprintln!("No message provided to send.");
         std::process::exit(1);
