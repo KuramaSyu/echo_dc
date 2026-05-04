@@ -16,16 +16,22 @@ struct Cli {
     /// The message to send (consumes everything after)
     #[arg(global = true, help = "Message to send", trailing_var_arg = true)]
     message: Option<Vec<String>>,
-    // #[command(subcommand)]
-    // command: Option<Commands>,
+
+    #[command(subcommand)]
+    info: Option<Commands>,
 }
 
 #[derive(Subcommand, Debug)]
-enum Commands {}
+enum Commands {
+    /// Print information about the config file and its webhooks
+    Info,
+}
 
 #[tokio::main]
 async fn main() {
     let cli = Cli::parse();
+
+    // checks and if needed creates config
     Config::ensure_file_exists(&Config::default_path());
     let config = match Config::from_etc() {
         Ok(c) => c,
@@ -35,6 +41,12 @@ async fn main() {
             default_config
         }
     };
+
+    if let Some(Commands::Info) = cli.info {
+        println!("Config file location: {}", Config::default_path());
+        println!("Available webhooks: {:?}", config.webhooks.keys().collect::<Vec<&String>>());
+        return;
+    }
     let webhook = match config.get_webhook(&cli.webhook_name.clone().unwrap()) {
         Some(v) => v,
         None => {
