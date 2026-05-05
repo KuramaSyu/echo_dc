@@ -1,12 +1,10 @@
 use std::{
     collections::HashMap,
-    fs::File,
-    io::{Read, Write},
+    io::Write,
     path::Path,
 };
 
 use serde::{Deserialize, Serialize};
-use serenity::model::webhook;
 use toml;
 
 #[derive(Serialize, Deserialize, Debug)]
