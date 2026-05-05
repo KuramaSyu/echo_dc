@@ -13,7 +13,7 @@ pub struct Config {
 }
 
 impl Config {
-    pub fn new(webhooks: HashMap<String, String>) -> Self {
+    pub fn _new(webhooks: HashMap<String, String>) -> Self {
         Config { webhooks }
     }
 
