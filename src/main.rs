@@ -2,10 +2,10 @@ use std::io;
 use std::io::Read;
 
 use clap::{Parser, Subcommand};
-use serenity::all::{CreateEmbed, Embed, Message};
+use serenity::all::{CreateEmbed};
 use serenity::builder::ExecuteWebhook;
 use serenity::http::Http;
-use serenity::model::webhook::{self, Webhook};
+use serenity::model::webhook::{Webhook};
 mod utils;
 use utils::Config;
 
@@ -55,7 +55,7 @@ async fn main() {
     Config::ensure_file_exists(&Config::default_path());
     let config = match Config::from_etc() {
         Ok(c) => c,
-        Err(e) => {
+        Err(_e) => {
             let default_config = Config::template();
             default_config.to_etc().unwrap();
             default_config
